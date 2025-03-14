@@ -28,10 +28,11 @@
   <script>
     var initial = "const int BUTTON_PIN = 4;\n" +
       "int buttonState = 0;\n" +
-      "void setup() { Serial.begin(9600);\n" +
-      "pinMode(LED_BUILTIN, OUTPUT);\n" +
-      "pinMode(BUTTON_PIN, INPUT); }\n" +
-      "void loop() {\n" +
+      "void setup() {\\n" + 
+			"	Serial.begin(9600);\\n" +
+      "	pinMode(LED_BUILTIN, OUTPUT);\\n" +
+      "	pinMode(BUTTON_PIN, INPUT); }\\n" +
+      "	void loop() {\n" +
       "pushbutton value: buttonState = digitalRead(BUTTON_PIN);\n" +
       "if (buttonState == HIGH) {Serial.println(\"Button HIGH\");\n" +
       "digitalWrite(LED_BUILTIN, HIGH); }\n" +
