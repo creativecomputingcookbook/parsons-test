@@ -573,6 +573,7 @@
     }
     // replace each line with in solution with the corresponding line in executable code
     var toggleRegexp = new RegExp("\\$\\$toggle(" + parson.options.toggleSeparator + ".*?)?\\$\\$", "g");
+		var inputRegexp = new RegExp("\\$\\$input(" + parson.options.inputSeparator + ".*?)?\\$\\$", "g");
     $.each(student_code, function(index, item) {
       var ind = parseInt(item.id.replace(parson.id_prefix, ''), 10);
 
@@ -789,6 +790,32 @@
       });
    };
 
+	var addInputElements = function(widget) {
+		for (var i = 0; i < widget.modified_lines.length; i++) {
+			widget.modified_lines[i]._addInputs();
+		}
+		// input elements are only enabled for unit tests
+		if (!widget.options.unittests && !widget.options.vartests) { return; }
+		var context = $("#" + widget.options.sortableId + ", #" + widget.options.trashId);
+		$(".jsparson-input", context).each(function(index, item) {
+			$(item).data("jsp-options", $(item).attr("placeholder"));
+		});
+
+		// register a change handler for all the input elements (and unregister existing)
+		context.off("change", ".jsparson-input").on("change", ".jsparson-input", function() {
+			var $this = $(this),
+				curVal = $this.val(),
+				placeholder = $this.attr("placeholder"),
+				$parent = $this.parent("li");
+			// clear existing feedback
+			widget.clearFeedback();
+			// log the event
+			widget.addLogEntry({type: "input", oldvalue: placeholder, newvalue: curVal,
+				target: $parent[0].id,
+				inputindex: $parent.find(".jsparson-input").index($this)});
+		});
+	};
+
   // Create a line object skeleton with only code and indentation from
   // a code string of an assignment definition string (see parseCode)
   var ParsonsCodeline = function(codestring, widget) {
@@ -796,6 +823,7 @@
     this.code = "";
     this.indent = 0;
     this._toggles = [];
+		this._inputs = [];
     if (codestring) {
       // Consecutive lines to be dragged as a single block of code have strings "\\n" to
       // represent newlines => replace them with actual new line characters "\n"
@@ -836,6 +864,24 @@
       });
     }
   };
+	//
+	ParsonsCodeline.prototype._addInputs = function() {
+		var inputRegexp = new RegExp("\\$\\$input(" + this.widget.options.inputSeparator + ".*?)?\\$\\$", "g");
+		var inputs = this.code.match(inputRegexp);
+		var that = this;
+		this._inputs = [];
+		if (inputs) {
+			var html = this.code;
+			for (var i = 0; i < inputs.length; i++) {
+				var placeholder = inputs[i].substring(8, inputs[i].length - 2).split(this.widget.options.inputSeparator)
+				html = html.replace(inputs[i], "<input type='text' class='jsparson-input' placeholder='" + placeholder + "'></input>");
+			}
+			this.elem().html(html);
+			this.elem().find(".jsparson-input").each(function(index, item) {
+				that._inputs.push(item);
+			});
+		}
+	};
   // Returns the number of toggleable elements in this code block
   ParsonsCodeline.prototype.toggleCount = function() {
     return this._toggles.length;
@@ -883,7 +929,8 @@
        'first_error_only': true,
        'max_wrong_lines': 10,
        'lang': 'en',
-       'toggleSeparator': '::'
+       'toggleSeparator': '::',
+			 'inputSeparator': '::'
      };
      
      this.options = jQuery.extend({}, defaults, options);
@@ -1338,6 +1385,7 @@
            this.createHTMLFromLists(idlist,[]);
        }
        addToggleableElements(this);
+			 addInputElements(this);
    };
 
    ParsonsWidget.prototype.createHTMLFromHashes = function(solutionHash, trashHash) {

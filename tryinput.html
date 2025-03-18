@@ -57,32 +57,33 @@
     });
 
     // Add input handling
-    parson.addInteractiveElements = function() {
-      var context = $("#sortable, #sortableTrash");
-
-      // Handle input elements
-      context.off("input", ".jsparson-input").on("input", ".jsparson-input", function() {
-        var $this = $(this);
-        var $parent = $this.closest("li");
-        var line = parson.getLineById($parent.attr("id"));
-        var inputIndex = $parent.find(".jsparson-input").index($this);
-
-        // Store input value
-        if (!line.inputValues) line.inputValues = {};
-        line.inputValues[inputIndex] = $this.val();
-
-        // Clear feedback
-        parson.clearFeedback();
-      });
-    };
-
+    // parson.addInteractiveElements = function() {
+    //   var context = $("#sortable, #sortableTrash");
+    //
+    //   // Handle input elements
+    //   context.off("input", ".jsparson-input").on("input", ".jsparson-input", function() {
+    //     var $this = $(this);
+    //     var $parent = $this.closest("li");
+    //     var line = parson.getLineById($parent.attr("id"));
+    //     var inputIndex = $parent.find(".jsparson-input").index($this);
+    //
+    //     // Store input value
+    //     if (!line.inputValues) line.inputValues = {};
+    //     line.inputValues[inputIndex] = $this.val();
+    //
+    //     // Clear feedback
+    //     parson.clearFeedback();
+    //   });
+    // };
+    //
     parson.init(initial);
     parson.shuffleLines();
 
     $("#newInstanceLink").click(function(event){
       event.preventDefault();
       parson.shuffleLines();
-      parson.addInteractiveElements();
+			parson.clearFeedback();
+/*       parson.addInteractiveElements(); */
     });
 
     $("#feedbackLink").click(function(event){
