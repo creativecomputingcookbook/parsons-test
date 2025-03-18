@@ -582,6 +582,7 @@
       // code shown to learner.
       var execline = executableCode[ind];
       var toggles = execline.match(toggleRegexp);
+			var inputs = execline.match(inputRegexp);
       if (toggles) {
         for (var i = 0; i < toggles.length; i++) {
           var opts = toggles[i].substring(10, toggles[i].length - 2).split(parson.options.toggleSeparator);
@@ -593,6 +594,12 @@
           }
         }
       }
+			if (inputs) {
+				for (var i = 0; i < inputs.length; i++) {
+				var inputval = item.inputValues && item.inputValues[i] ? item.inputValues[i] : inputs[i].split(parson.options.inputSeparator)[1];
+				execline = execline.replace(inputs[i], inputval);
+				}
+			}
       var execlines = execline.split(/<br\s*\/?>/);
       for (i = 0; i < execlines.length; i++) {
         // add the modified codeline to the executable code
@@ -801,20 +808,19 @@
 			$(item).data("jsp-options", $(item).attr("placeholder"));
 		});
 
-		// register a change handler for all the input elements (and unregister existing)
-		context.off("change", ".jsparson-input").on("change", ".jsparson-input", function() {
-			var $this = $(this),
-				curVal = $this.val(),
-				placeholder = $this.attr("placeholder"),
-				$parent = $this.parent("li");
-			// clear existing feedback
-			widget.clearFeedback();
-			// log the event
-			widget.addLogEntry({type: "input", oldvalue: placeholder, newvalue: curVal,
-				target: $parent[0].id,
-				inputindex: $parent.find(".jsparson-input").index($this)});
-		});
-	};
+    context.off("input", ".jsparson-input").on("input", ".jsparson-input", _.debounce(function() {
+        var $this = $(this);
+        var $parent = $this.closest("li");
+        var line = widget.getLineById($parent.attr("id"));
+        var inputIndex = $parent.find(".jsparson-input").index($this);
+
+        // Store value directly in line object
+        if (!line.inputValues) line.inputValues = {};
+        line.inputValues[inputIndex] = $this.val();
+
+        widget.clearFeedback();
+    }, 300));
+};
 
   // Create a line object skeleton with only code and indentation from
   // a code string of an assignment definition string (see parseCode)
@@ -865,23 +871,33 @@
     }
   };
 	//
-	ParsonsCodeline.prototype._addInputs = function() {
-		var inputRegexp = new RegExp("\\$\\$input(" + this.widget.options.inputSeparator + ".*?)?\\$\\$", "g");
-		var inputs = this.code.match(inputRegexp);
-		var that = this;
-		this._inputs = [];
-		if (inputs) {
-			var html = this.code;
-			for (var i = 0; i < inputs.length; i++) {
-				var placeholder = inputs[i].substring(8, inputs[i].length - 2).split(this.widget.options.inputSeparator)
-				html = html.replace(inputs[i], "<input type='text' class='jsparson-input' placeholder='" + placeholder + "'></input>");
-			}
-			this.elem().html(html);
-			this.elem().find(".jsparson-input").each(function(index, item) {
-				that._inputs.push(item);
-			});
-		}
-	};
+ParsonsCodeline.prototype._addInputs = function() {
+    var inputRegexp = new RegExp("\\$\\$input(" + this.widget.options.inputSeparator + ".*?)?\\$\\$", "g");
+    var inputs = this.code.match(inputRegexp);
+    var that = this;
+    this._inputs = [];
+    if (inputs) {
+        var html = this.code;
+        for (var i = 0; i < inputs.length; i++) {
+            var parts = inputs[i].substring(9, inputs[i].length - 2)
+                           .split(this.widget.options.inputSeparator);
+						// set default value for input to be the options provided
+						console.log(parts);
+            var defaultValue = parts.slice().join(', ');
+            html = html.replace(inputs[i], 
+                `<input type="text" class="jsparson-input" 
+                        value="${defaultValue}"
+                        placeholder="${parts.slice(1).join(', ')}">`);
+        }
+        this.elem().html(html);
+        this.elem().find(".jsparson-input").each(function(index, item) {
+            that._inputs.push(item);
+            // Initialize input values
+            if (!that.inputValues) that.inputValues = {};
+            that.inputValues[index] = $(item).val();
+        });
+    }
+};
   // Returns the number of toggleable elements in this code block
   ParsonsCodeline.prototype.toggleCount = function() {
     return this._toggles.length;
