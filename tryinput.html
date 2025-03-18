@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+  <title>Variable Swap</title>
+  <link rel="stylesheet" href="./parsons.css" />
+  <link rel="stylesheet" href="./lib/prettify.css" />
+  <meta charset="utf8"/>
+</head>
+<body>
+<h2>Variable Swap</h2>
+<p>Construct a program that swaps the values of variables <code>x</code> and <code>y</code> using the
+  helper variable <code>tmp</code>. Fill in the blanks (<span class="jsparson-input"></span>) with appropriate variable names.</p>
+<div id="sortableTrash" class="sortable-code"><p>Trash</p></div>
+<div id="sortable" class="sortable-code"><p>Solution</p></div>
+<div style="clear:both;"></div>
+<p>
+  <a href="#" id="newInstanceLink">New instance</a>
+  <a href="#" id="feedbackLink">Get feedback</a>
+</p>
+<div id="unittest"></div>
+<script src="./lib/jquery.min.js"></script>
+<script src="./lib/jquery-ui.min.js"></script>
+<script src="./lib/jquery.ui.touch-punch.min.js"></script>
+<script src="./lib/underscore-min.js"></script>
+<script src="./lib/lis.js"></script>
+<script src="./parsons.js"></script>
+<script src="./lib/skulpt.js"></script>
+<script src="./lib/skulpt-stdlib.js"></script>
+<script>
+  // Modified initial code with input placeholders
+  var initial = 
+		"<input type='text' class='jsparson-input' placeholder='x/y/tmp'> = <input type='text' class='jsparson-input' placeholder='x/y/tmp'>\n" +
+		"<input type='text' class='jsparson-input' placeholder='x/y/tmp'> = <input type='text' class='jsparson-input' placeholder='x/y/tmp'>\n" +
+		"<input type='text' class='jsparson-input' placeholder='x/y/tmp'> = <input type='text' class='jsparson-input' placeholder='x/y/tmp'>\n";
+
+  $(document).ready(function(){
+    var parson = new ParsonsWidget({
+      'sortableId': 'sortable',
+      'trashId': 'sortableTrash',
+      'vartests': [{
+        initcode: "x = 0\ny = 2", 
+        code: "", 
+        message: "Testing with initial values x=0, y=2",
+        variables: {x: 2, y: 0}
+      }, {
+        initcode: "x = 3\ny = 4", 
+        code: "", 
+        message: "Testing with initial values x=3, y=4",
+        variables: {x: 4, y: 3}
+      }],
+      'executable_code': [  // Added executable code template
+        "tmp = x",
+        "x = y",
+        "y = tmp"
+      ],
+      lang: "en"
+    });
+
+    // Add input handling
+    parson.addInteractiveElements = function() {
+      var context = $("#sortable, #sortableTrash");
+
+      // Handle input elements
+      context.off("input", ".jsparson-input").on("input", ".jsparson-input", function() {
+        var $this = $(this);
+        var $parent = $this.closest("li");
+        var line = parson.getLineById($parent.attr("id"));
+        var inputIndex = $parent.find(".jsparson-input").index($this);
+
+        // Store input value
+        if (!line.inputValues) line.inputValues = {};
+        line.inputValues[inputIndex] = $this.val();
+
+        // Clear feedback
+        parson.clearFeedback();
+      });
+    };
+
+    parson.init(initial);
+    parson.shuffleLines();
+
+    $("#newInstanceLink").click(function(event){
+      event.preventDefault();
+      parson.shuffleLines();
+      parson.addInteractiveElements();
+    });
+
+    $("#feedbackLink").click(function(event){
+      event.preventDefault();
+      var fb = parson.getFeedback();
+      $("#unittest").html("<h2>Feedback:</h2>" + fb.feedback);
+      if (fb.success) { alert("Correct solution!"); }
+    });
+  });
+</script>
+</body>
+</html>
