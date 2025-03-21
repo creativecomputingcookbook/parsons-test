@@ -562,6 +562,7 @@
   // which case it will be split on newline.
   // For each line in the model solution, there should be a matching line
   // in the executable_code.
+	console.log("replaceCodelines");
   LanguageTranslationGrader.prototype._replaceCodelines = function() {
     var student_code = this.parson.normalizeIndents(this.parson.getModifiedCode("#ul-" +
                           this.parson.options.sortableId)),
@@ -594,9 +595,11 @@
           }
         }
       }
+			console.log("inputs: " + inputs);
 			if (inputs) {
 				for (var i = 0; i < inputs.length; i++) {
 				var inputval = item.inputValues && item.inputValues[i] ? item.inputValues[i] : inputs[i].split(parson.options.inputSeparator)[1];
+				console.log("inputval: " + inputval);
 				execline = execline.replace(inputs[i], inputval);
 				}
 			}
@@ -882,7 +885,6 @@ ParsonsCodeline.prototype._addInputs = function() {
             var parts = inputs[i].substring(9, inputs[i].length - 2)
                            .split(this.widget.options.inputSeparator);
 						// set default value for input to be the options provided
-						console.log(parts);
             var defaultValue = parts.slice().join(', ');
             html = html.replace(inputs[i], 
                 `<input type="text" class="jsparson-input" 
