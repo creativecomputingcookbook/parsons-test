@@ -562,6 +562,7 @@
   // which case it will be split on newline.
   // For each line in the model solution, there should be a matching line
   // in the executable_code.
+	console.log("replaceCodelines");
   LanguageTranslationGrader.prototype._replaceCodelines = function() {
     var student_code = this.parson.normalizeIndents(this.parson.getModifiedCode("#ul-" +
                           this.parson.options.sortableId)),
@@ -573,6 +574,7 @@
     }
     // replace each line with in solution with the corresponding line in executable code
     var toggleRegexp = new RegExp("\\$\\$toggle(" + parson.options.toggleSeparator + ".*?)?\\$\\$", "g");
+		var inputRegexp = new RegExp("\\$\\$input(" + parson.options.inputSeparator + ".*?)?\\$\\$", "g");
     $.each(student_code, function(index, item) {
       var ind = parseInt(item.id.replace(parson.id_prefix, ''), 10);
 
@@ -581,6 +583,7 @@
       // code shown to learner.
       var execline = executableCode[ind];
       var toggles = execline.match(toggleRegexp);
+			var inputs = execline.match(inputRegexp);
       if (toggles) {
         for (var i = 0; i < toggles.length; i++) {
           var opts = toggles[i].substring(10, toggles[i].length - 2).split(parson.options.toggleSeparator);
@@ -592,6 +595,14 @@
           }
         }
       }
+			console.log("inputs: " + inputs);
+			if (inputs) {
+				for (var i = 0; i < inputs.length; i++) {
+				var inputval = item.inputValues && item.inputValues[i] ? item.inputValues[i] : inputs[i].split(parson.options.inputSeparator)[1];
+				console.log("inputval: " + inputval);
+				execline = execline.replace(inputs[i], inputval);
+				}
+			}
       var execlines = execline.split(/<br\s*\/?>/);
       for (i = 0; i < execlines.length; i++) {
         // add the modified codeline to the executable code
@@ -789,6 +800,31 @@
       });
    };
 
+	var addInputElements = function(widget) {
+		for (var i = 0; i < widget.modified_lines.length; i++) {
+			widget.modified_lines[i]._addInputs();
+		}
+		// input elements are only enabled for unit tests
+		if (!widget.options.unittests && !widget.options.vartests) { return; }
+		var context = $("#" + widget.options.sortableId + ", #" + widget.options.trashId);
+		$(".jsparson-input", context).each(function(index, item) {
+			$(item).data("jsp-options", $(item).attr("placeholder"));
+		});
+
+    context.off("input", ".jsparson-input").on("input", ".jsparson-input", _.debounce(function() {
+        var $this = $(this);
+        var $parent = $this.closest("li");
+        var line = widget.getLineById($parent.attr("id"));
+        var inputIndex = $parent.find(".jsparson-input").index($this);
+
+        // Store value directly in line object
+        if (!line.inputValues) line.inputValues = {};
+        line.inputValues[inputIndex] = $this.val();
+
+        widget.clearFeedback();
+    }, 300));
+};
+
   // Create a line object skeleton with only code and indentation from
   // a code string of an assignment definition string (see parseCode)
   var ParsonsCodeline = function(codestring, widget) {
@@ -796,6 +832,7 @@
     this.code = "";
     this.indent = 0;
     this._toggles = [];
+		this._inputs = [];
     if (codestring) {
       // Consecutive lines to be dragged as a single block of code have strings "\\n" to
       // represent newlines => replace them with actual new line characters "\n"
@@ -836,6 +873,33 @@
       });
     }
   };
+	//
+ParsonsCodeline.prototype._addInputs = function() {
+    var inputRegexp = new RegExp("\\$\\$input(" + this.widget.options.inputSeparator + ".*?)?\\$\\$", "g");
+    var inputs = this.code.match(inputRegexp);
+    var that = this;
+    this._inputs = [];
+    if (inputs) {
+        var html = this.code;
+        for (var i = 0; i < inputs.length; i++) {
+            var parts = inputs[i].substring(9, inputs[i].length - 2)
+                           .split(this.widget.options.inputSeparator);
+						// set default value for input to be the options provided
+            var defaultValue = parts.slice().join(', ');
+            html = html.replace(inputs[i], 
+                `<input type="text" class="jsparson-input" 
+                        value="${defaultValue}"
+                        placeholder="${parts.slice(1).join(', ')}">`);
+        }
+        this.elem().html(html);
+        this.elem().find(".jsparson-input").each(function(index, item) {
+            that._inputs.push(item);
+            // Initialize input values
+            if (!that.inputValues) that.inputValues = {};
+            that.inputValues[index] = $(item).val();
+        });
+    }
+};
   // Returns the number of toggleable elements in this code block
   ParsonsCodeline.prototype.toggleCount = function() {
     return this._toggles.length;
@@ -883,7 +947,8 @@
        'first_error_only': true,
        'max_wrong_lines': 10,
        'lang': 'en',
-       'toggleSeparator': '::'
+       'toggleSeparator': '::',
+			 'inputSeparator': '::'
      };
      
      this.options = jQuery.extend({}, defaults, options);
@@ -1338,6 +1403,7 @@
            this.createHTMLFromLists(idlist,[]);
        }
        addToggleableElements(this);
+			 addInputElements(this);
    };
 
    ParsonsWidget.prototype.createHTMLFromHashes = function(solutionHash, trashHash) {
