@@ -3,16 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index Page</title>
+    <title>Parsons Problems Workshop</title>
+		<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Files in this directory:</h1>
-    <ul id="fileList"></ul>
-    <ul>
-        <li><a href="arduino-test.html">Page 1</a></li>
-        <li><a href="buttoncode.html">Page 2</a></li>
-        <li><a href="simpleparsons.html">Page 3</a></li>
-				<li><a href="tryinput.html">Page 4</a></li>
-    </ul>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <!-- <li class="dropdown"> -->
+            <!--     <a href="#examples">Examples ▾</a> -->
+            <!--     <div class="dropdown-content"> -->
+            <!--         <a href="arduino-test.html">Arduino Test</a> -->
+            <!--         <a href="buttoncode.html">Button Code</a> -->
+            <!--         <a href="simpleparsons.html">Simple Parsons</a> -->
+            <!--         <a href="tryinput.html">Input Test</a> -->
+            <!--     </div> -->
+            <!-- </li> -->
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Interactive Parsons Problems Workshop</h1>
+        </div>
+
+        <div class="about-section">
+            <h2>About Parsons Problems</h2>
+            <p>
+                Parsons problems are a type of programming exercise where learners assemble code 
+                from mixed-up blocks. This interactive approach helps develop computational 
+                thinking skills while reducing syntax errors. Our implementation uses the 
+                powerful <strong>parsons-js library</strong> to create engaging, drag-and-drop 
+                coding challenges that make learning programming concepts more accessible 
+                and enjoyable.
+            </p>
+            <p style="margin-top: 1rem;">
+                Explore our examples below to see different implementations of Parsons problems, 
+                ranging from basic syntax exercises to more complex programming challenges.
+            </p>
+        </div>
+
+        <div class="examples-grid">
+            <div class="example-card">
+                <h3>Arduino Test</h3>
+                <p>Learn basic microcontroller programming concepts.</p>
+                <a href="arduino-test.html">Try this example →</a>
+            </div>
+            
+            <div class="example-card">
+                <h3>Button Interaction</h3>
+                <p>Explore event handling and UI components.</p>
+                <a href="buttoncode.html">Try this example →</a>
+            </div>
+
+            <div class="example-card">
+                <h3>Basic Parsons</h3>
+                <p>Start with simple programming structures.</p>
+                <a href="simpleparsons.html">Try this example →</a>
+            </div>
+
+            <div class="example-card">
+                <h3>Input Handling</h3>
+                <p>Experiment with user input processing.</p>
+                <a href="tryinput.html">Try this example →</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
